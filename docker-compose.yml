@@ -10,13 +10,13 @@ services:
     image: mongo:7
     container_name: perfice-mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: perfice
-      MONGO_INITDB_ROOT_PASSWORD: perfice_password
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-perfice}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-perfice_password_change_in_production}
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT:-27017}:27017"
     networks:
       - perfice
     restart: unless-stopped
@@ -65,11 +65,11 @@ services:
     environment:
       GRPC_PORT: 5001
       HTTP_PORT: 8081
-      MONGO_URL: mongodb://perfice:perfice_password@mongodb:27017/perfice?authSource=admin
-      JWT_SECRET: your_jwt_secret_here_change_in_production
+      MONGO_URL: mongodb://${MONGO_USERNAME:-perfice}:${MONGO_PASSWORD:-perfice_password_change_in_production}@mongodb:27017/perfice?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-your_super_secure_jwt_secret_change_this_in_production}
       KAFKA_URL: kafka:9092
-      BACKEND_BASE_URL: http://localhost:3000
-      APP_BASE_URL: http://localhost/new
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-http://localhost:3000}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost/new}
     networks:
       - perfice
     depends_on:
@@ -87,7 +87,7 @@ services:
     container_name: perfice-sync
     environment:
       PORT: 8082
-      MONGO_URL: mongodb://perfice:perfice_password@mongodb:27017/perfice?authSource=admin
+      MONGO_URL: mongodb://${MONGO_USERNAME:-perfice}:${MONGO_PASSWORD:-perfice_password_change_in_production}@mongodb:27017/perfice?authSource=admin
       AUTH_GRPC_URL: auth:5001
       KAFKA_URL: kafka:9092
     networks:
@@ -106,12 +106,12 @@ services:
     image: perfice-integration:latest
     container_name: perfice-integration
     environment:
-      MONGO_URL: mongodb://perfice:perfice_password@mongodb:27017/perfice?authSource=admin
+      MONGO_URL: mongodb://${MONGO_USERNAME:-perfice}:${MONGO_PASSWORD:-perfice_password_change_in_production}@mongodb:27017/perfice?authSource=admin
       PORT: 8080
-      CALLBACK_URL_BASE: http://localhost:3000
+      CALLBACK_URL_BASE: ${CALLBACK_URL_BASE:-http://localhost:3000}
       AUTH_GRPC_URL: auth:5001
       KAFKA_URL: kafka:9092
-      ENCRYPTION_KEY: your_encryption_key_32_chars_long
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-change_this_32_char_key_production}
     networks:
       - perfice
     depends_on:
@@ -128,7 +128,7 @@ services:
     image: perfice-gateway:latest
     container_name: perfice-gateway
     ports:
-      - "3000:3000"
+      - "${GATEWAY_PORT:-3000}:3000"
     environment:
       AUTH_GRPC_URL: auth:5001
       AUTH_HTTP_URL: http://auth:8081
@@ -152,11 +152,11 @@ services:
       context: ./client
       dockerfile: Dockerfile
       args:
-        VITE_BACKEND_URL: http://localhost:3000
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL:-http://localhost:3000}
     image: perfice-client:latest
     container_name: perfice-client
     ports:
-      - "80:80"
+      - "${CLIENT_PORT:-80}:80"
     networks:
       - perfice
     depends_on:
